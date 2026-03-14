@@ -4,7 +4,7 @@ A reproducible set of instructions for generating a QCacheGrind installer for
 modern Windows.
 
 Most people will just want to check out the Releases page for prebuilt binaries.
-:smile:
+😊
 
 > [!IMPORTANT]
 > 
