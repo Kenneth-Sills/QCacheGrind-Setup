@@ -1,0 +1,49 @@
+[Setup]
+AppId={{InstallerAppId}}
+AppName={{AppName}}
+AppVersion={{AppVersion}}
+AppPublisher={{Publisher}}
+UninstallDisplayName={{AppName}}
+PrivilegesRequired=lowest
+PrivilegesRequiredOverridesAllowed=dialog
+ChangesAssociations=yes
+DefaultDirName={autopf}\{{AppName}}
+DefaultGroupName={{AppName}}
+OutputDir={{OutputDir}}
+OutputBaseFilename={{InstallerBaseName}}
+Compression=lzma
+SolidCompression=yes
+ArchitecturesInstallIn64BitMode=x64compatible
+WizardStyle=modern
+UninstallDisplayIcon={app}\QCacheGrind.exe
+RestartApplications=no
+RestartIfNeededByRun=no
+CloseApplications=yes
+CloseApplicationsFilter=*.*
+
+[Files]
+Source: "{{DistDir}}\*"; DestDir: "{app}"; Excludes: "vc_redist.x64.exe"; Flags: recursesubdirs createallsubdirs ignoreversion
+Source: "{{DistDir}}\vc_redist.x64.exe"; DestDir: "{app}"; Flags: ignoreversion deleteafterinstall
+
+[Tasks]
+Name: "associatecgo"; Description: "Associate .cgo Callgrind files with QCacheGrind"; GroupDescription: "File associations:"
+
+[Registry]
+Root: HKA; Subkey: "Software\Classes\.cgo"; ValueType: string; ValueName: ""; ValueData: "QCacheGrind.cgo"; Flags: uninsdeletekey; Tasks: associatecgo
+Root: HKA; Subkey: "Software\Classes\QCacheGrind.cgo"; ValueType: string; ValueName: ""; ValueData: "Callgrind Output"; Flags: uninsdeletekey; Tasks: associatecgo
+Root: HKA; Subkey: "Software\Classes\QCacheGrind.cgo\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\QCacheGrind.exe,0"; Flags: uninsdeletekey; Tasks: associatecgo
+Root: HKA; Subkey: "Software\Classes\QCacheGrind.cgo\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\QCacheGrind.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: associatecgo
+
+[UninstallDelete]
+; Graphviz may create or rewrite these plugin cache files during the post-install `dot.exe -c`.
+; Remove any generated cache variants on uninstall in case they were created after file install tracking.
+Type: files; Name: "{app}\config*"
+
+[Icons]
+Name: "{group}\QCacheGrind"; Filename: "{app}\QCacheGrind.exe"; WorkingDir: "{app}"; IconFilename: "{app}\QCacheGrind.exe"
+Name: "{group}\Uninstall QCacheGrind"; Filename: "{uninstallexe}"
+
+[Run]
+Filename: "{app}\vc_redist.x64.exe"; Parameters: "/install /quiet /norestart"; Description: "Install Microsoft Visual C++ Runtime"; StatusMsg: "Installing Microsoft Visual C++ Runtime..."; Flags: waituntilterminated; Check: FileExists(ExpandConstant('{app}\vc_redist.x64.exe'))
+Filename: "{app}\dot.exe"; Parameters: "-c"; Description: "Initialize Graphviz plugins"; StatusMsg: "Initializing Graphviz plugins..."; Flags: runhidden waituntilterminated; Check: FileExists(ExpandConstant('{app}\dot.exe'))
+Filename: "{app}\QCacheGrind.exe"; Description: "Launch QCacheGrind"; Flags: nowait postinstall skipifsilent
