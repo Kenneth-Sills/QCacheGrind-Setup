@@ -24,6 +24,26 @@ function Resolve-RepoPath {
     return [System.IO.Path]::GetFullPath((Join-Path $BasePath $Path))
 }
 
+function Get-RequiredConfigValue {
+    param(
+        [Parameter(Mandatory)]
+        [hashtable]$Config,
+        [Parameter(Mandatory)]
+        [string]$Key
+    )
+
+    if (-not $Config.ContainsKey($Key)) {
+        throw "Missing required config value '${Key}' in config/build-config.psd1."
+    }
+
+    $value = [string]$Config[$Key]
+    if ([string]::IsNullOrWhiteSpace($value)) {
+        throw "Config value '${Key}' in config/build-config.psd1 must not be empty."
+    }
+
+    return $value
+}
+
 function Assert-PathExistence {
     param(
         [Parameter(Mandatory)]

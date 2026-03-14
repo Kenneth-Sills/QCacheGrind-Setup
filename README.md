@@ -21,7 +21,7 @@ Most people will just want to check out the Releases page for prebuilt binaries.
 The standard convention for callgrind and cachegrind files is to associate them
 by a prefix - `callgrind.out*` or `cachegrind.out*` - and to place a
 `#callgrind format` header line at the top of the file. Unfortunately, there's
-no way to developer a file association for file content or file name prefixes in
+no way to develop a file association for file content or file name prefixes in
 Windows so you're forced to go into the program, open the load dialog, and find
 your file that way.
 
@@ -78,10 +78,17 @@ One complete, there should be an installer binary under `dist/`, easy peasy!
 
 **Attribution:**
 
+> [!important]
+> 
+> By distributing your own modified copies, you take on all licensing
+> obligations for those copies, including at-request source distribution per
+> GPL.
+
 If you've made any changes or plan on publishing, update
 `config/build-config.psd1` before building:
 
 - Set `Publisher` to the name you want Windows to display.
+- Set `PublisherEmail` to the contact address for written source requests.
 - Set `InstallerAppId` to a new GUID if you're publishing your own fork or
   otherwise producing an installer that should not upgrade or conflict with the
   original package.

@@ -14,11 +14,15 @@ Write-Step 'Loading build configuration'
 $resolvedConfigPath = Resolve-RepoPath -BasePath $repoRoot -Path $ConfigPath
 Assert-PathExistence -Path $resolvedConfigPath -Label 'Config file'
 $config = Import-PowerShellDataFile -LiteralPath $resolvedConfigPath
+$publisher = Get-RequiredConfigValue -Config $config -Key 'Publisher'
+$publisherEmail = Get-RequiredConfigValue -Config $config -Key 'PublisherEmail'
 
 $distDir = Resolve-RepoPath -BasePath $repoRoot -Path $config.DistDir
 $outputDir = Resolve-RepoPath -BasePath $repoRoot -Path $config.OutputDir
 $issTemplatePath = Resolve-RepoPath -BasePath $repoRoot -Path $config.IssTemplatePath
 $issOutputPath = Resolve-RepoPath -BasePath $repoRoot -Path $config.IssOutputPath
+$complianceSourceDir = Resolve-RepoPath -BasePath $repoRoot -Path 'compliance'
+$complianceSourceOfferTemplatePath = Join-Path $complianceSourceDir 'SOURCE-OFFER.md'
 $craftRoot = Resolve-RepoPath -BasePath $repoRoot -Path $config.CraftRoot
 $craftBin = Join-Path $craftRoot 'bin'
 $winDeployQt = Join-Path $craftBin 'windeployqt.exe'
@@ -51,6 +55,8 @@ Assert-PathExistence -Path $craftBin -Label 'Craft bin directory'
 Assert-PathExistence -Path $winDeployQt -Label 'windeployqt.exe'
 Assert-PathExistence -Path $graphvizBin -Label 'Graphviz bin directory'
 Assert-PathExistence -Path $issTemplatePath -Label 'Inno Setup template'
+Assert-PathExistence -Path $complianceSourceDir -Label 'Compliance directory'
+Assert-PathExistence -Path $complianceSourceOfferTemplatePath -Label 'Source offer template'
 
 Write-Step 'Running builds from the current Craft shell'
 Invoke-CraftBuild -Packages $config.CraftPackages -IgnoreInstalled:(-not $UseInstalled)
@@ -82,12 +88,23 @@ Copy-GraphvizRuntime -GraphvizBin $graphvizBin -DumpBinPath $dumpBin -Roots $con
 Write-Step 'Applying icon to QCacheGrind.exe'
 Set-ExecutableIcon -RcEdit $rcEdit -ExecutablePath $stagedExe -IconPath $iconPath
 
+Write-Step 'Staging compliance files'
+$stagedComplianceDir = Join-Path $distDir 'compliance'
+Copy-Item -LiteralPath $complianceSourceDir -Destination $stagedComplianceDir -Recurse -Force
+
+Write-Step 'Rendering source offer'
+$sourceOfferValues = @{
+    Publisher = $publisher
+    PublisherEmail = $publisherEmail
+}
+Write-TemplateFile -TemplatePath $complianceSourceOfferTemplatePath -DestinationPath (Join-Path $stagedComplianceDir 'SOURCE-OFFER.md') -Values $sourceOfferValues
+
 Write-Step 'Rendering Inno Setup script'
 $templateValues = @{
     InstallerAppId = $config.InstallerAppId
     AppName = $config.AppName
     AppVersion = $resolvedAppVersion
-    Publisher = $config.Publisher
+    Publisher = $publisher
     OutputDir = $outputDir
     InstallerBaseName = $config.InstallerBaseName
     DistDir = $distDir

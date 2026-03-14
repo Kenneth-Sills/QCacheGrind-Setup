@@ -1,6 +1,7 @@
 @{
     AppName = 'QCacheGrind'
     Publisher = 'Kenneth Sills'
+    PublisherEmail = 'ksills.dev@gmail.com'
 
     CraftRoot = 'C:\CraftRoot'
     CraftPackages = @(
